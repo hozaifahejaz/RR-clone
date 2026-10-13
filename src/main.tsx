@@ -9,6 +9,7 @@ import { App } from './ui/App';
 import { loadProfile } from './meta/save';
 import { renderIcons } from './ui/icons';
 import { registerSW } from 'virtual:pwa-register';
+import { audio } from './audio/audio';
 
 async function boot() {
   const canvas = document.getElementById('gl') as HTMLCanvasElement;
@@ -19,6 +20,9 @@ async function boot() {
   const world = new World(canvas, profile.settings.quality);
   render(<App world={world} overlay={overlay} initial={profile} />, root);
   document.getElementById('loading')?.remove();
+  const unlockAudio = () => audio.init();
+  window.addEventListener('pointerdown', unlockAudio, { capture: true });
+  window.addEventListener('keydown', unlockAudio, { capture: true });
   try {
     registerSW({ immediate: true });
   } catch {

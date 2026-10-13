@@ -57,7 +57,10 @@ export class Game {
   tutorial: boolean;
   private seenHints = new Set<string>();
 
-  constructor(public world: World, overlay: HTMLElement, cfg: BattleConfig, opts: { replay?: TimedCommand[]; tutorial?: boolean; speed?: number } = {}) {
+  private replayTicks = Infinity;
+
+  constructor(public world: World, overlay: HTMLElement, cfg: BattleConfig, opts: { replay?: TimedCommand[]; replayTicks?: number; tutorial?: boolean; speed?: number } = {}) {
+    this.replayTicks = opts.replayTicks ?? Infinity;
     this.b = new Battle(cfg);
     this.view = new BattleView(world, overlay, this.b);
     this.replayLog = opts.replay ?? null;
@@ -76,9 +79,22 @@ export class Game {
     for (const l of this.listeners) l();
   }
 
+  private toastQueue: Toast[] = [];
   toast(text: string, kind: Toast['kind'] = 'info', sub?: string, dur = 2.2): void {
-    this.toasts.push({ id: this.toastId++, text, kind, sub, t: dur });
-    if (this.toasts.length > 4) this.toasts.shift();
+    const t: Toast = { id: this.toastId++, text, kind, sub, t: dur };
+    // small toasts show immediately; banners (wave/boss/phase/supply) play one at a time
+    if (kind === 'good' || kind === 'info' || kind === 'bad') {
+      this.toasts.push(t);
+      if (this.toasts.length > 3) this.toasts.shift();
+      return;
+    }
+    if (kind === 'wave' && this.toastQueue.length) return; // stale wave banners are skipped
+    this.toastQueue.push(t);
+  }
+  private pumpToasts(): void {
+    if (this.cinematicT > 0.4) return;
+    const bannerActive = this.toasts.some((t) => t.kind === 'wave' || t.kind === 'boss' || t.kind === 'phase' || t.kind === 'supply');
+    if (!bannerActive && this.toastQueue.length) this.toasts.push(this.toastQueue.shift()!);
   }
 
   // ───────────────────────── loop ─────────────────────────
@@ -102,7 +118,13 @@ export class Game {
             const c = this.ai.decide(this.b);
             if (c) this.command(c, true);
           }
-          if (this.replayLog) this.applyReplay();
+          if (this.replayLog) {
+            this.applyReplay();
+            if (this.b.tick >= this.replayTicks) {
+              this.b.over = true;
+              break;
+            }
+          }
           if (this.b.frozen) break;
           this.b.step();
           this.collect();
@@ -131,6 +153,7 @@ export class Game {
     this.updatePlacementVisuals();
     for (const t of this.toasts) t.t -= dt;
     this.toasts = this.toasts.filter((t) => t.t > 0);
+    this.pumpToasts();
     if (this.levelFlash > 0) this.levelFlash -= dt;
     if (this.fortFlash > 0) this.fortFlash -= dt;
     this.dirtyT += dt;

@@ -83,6 +83,16 @@ The sim can move to a Web Worker later if the main thread gets busy.
 
 ---
 
+## Status
+
+**M0 through M5 are built**: Endless (all six phases, 6 bosses), the full roster (17 towers, 17 enemies, 8 skills,
+4 heroes), the meta game, Daily Endless, Mutators, the Lab, replays and offline PWA support.
+What's still open:
+- Art is procedural low-poly (generated in code), not CC0 model packs. Asset keys stay swappable.
+- Performance has only been checked in a software renderer. Real-device tuning (M4 gate) still needs a phone.
+- Balance is tuned against the autoplay AI and still needs human playtesting (M1/M3 gates).
+- M6 Campaign and all online features remain future work.
+
 ## 4. Roadmap
 
 Every milestone ends in a playable build. **Gates** are go/no-go checks. We don't move on until they pass.

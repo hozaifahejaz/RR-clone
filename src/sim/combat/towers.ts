@@ -22,7 +22,7 @@ export function recomputeTowerStats(b: Battle, _only?: Tower): void {
     for (const t of b.towers) {
       if (t === a || t.def.delivery === 'buff') continue;
       if (Math.hypot(t.x - a.x, t.y - a.y) <= s.buffRadius + 0.01) {
-        t.buffDmg += s.buffDmg * boost * (1 + 0.15 * (a.rarity - t.rarity) * 0);
+        t.buffDmg += s.buffDmg * boost;
         t.buffApm += s.buffApm * boost;
         t.buffCrit += s.buffCrit;
       }

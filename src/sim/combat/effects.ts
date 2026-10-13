@@ -61,12 +61,12 @@ function shell(b: Battle, p: Projectile, dt: number): void {
 
 export function explode(
   b: Battle, x: number, y: number, r: number, dmg: number, cls: ClassId, towerId: number,
-  air: boolean | null, crit: number, critDmg: number, knock: number,
+  air: boolean | null, crit: number, critDmg: number, knock: number, hero = false,
 ): void {
   const kind = air === null ? 'both' : air ? 'air' : 'ground';
   for (const e of enemiesWithin(b, x, y, r, kind)) {
     const falloff = 1 - 0.35 * Math.min(1, Math.hypot(e.x - x, e.y - y) / Math.max(0.01, r));
-    b.damage(e, dmg * falloff, { cls, towerId, crit, critDmg });
+    b.damage(e, dmg * falloff, { cls, towerId: towerId || undefined, crit, critDmg, hero });
     if (knock > 0 && !e.dead) b.displace(e, knock);
   }
 }
@@ -317,8 +317,7 @@ export function updateHero(b: Battle, dt: number): void {
   switch (h.def.id) {
     case 'vex': {
       const r = siege ? 1.0 : h.def.aoe;
-      explode(b, e.x, e.y, r, dmg * (siege ? 3 : 1), 'vanguard', 0, null, 0.1, 2, 0);
-      if (b.hero) b.hero.dmgDealt += 0;
+      explode(b, e.x, e.y, r, dmg * (siege ? 3 : 1), 'vanguard', 0, null, 0.1, 2, 0, true);
       b.emit({ e: 'shot', tower: h.id, kind: siege ? 'siege' : 'hero', x: h.x, y: h.y, tx: e.x, ty: e.y, cls: 'vanguard' });
       b.emit({ e: 'boom', x: e.x, y: e.y, r, kind: siege ? 'big' : 'shell', cls: 'vanguard' });
       break;

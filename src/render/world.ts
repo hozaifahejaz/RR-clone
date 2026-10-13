@@ -170,7 +170,7 @@ export class World {
     const b = this.biome;
     const rockMat = new THREE.MeshToonMaterial({ color: b.dirt });
     const topMat = new THREE.MeshToonMaterial({ color: b.grass });
-    const cloudMat = new THREE.MeshToonMaterial({ color: b.cloud, transparent: true, opacity: 0.8, emissive: new THREE.Color(b.skyBottom).multiplyScalar(0.45) });
+    const cloudMat = new THREE.MeshToonMaterial({ color: b.cloud, transparent: true, opacity: 0.55, depthWrite: false, emissive: new THREE.Color(b.skyBottom).multiplyScalar(0.45) });
     const rnd = mulberry(77);
     for (let i = 0; i < 14; i++) {
       const g = new THREE.Group();
@@ -190,8 +190,8 @@ export class World {
     // cloud sea below
     for (let i = 0; i < 26; i++) {
       const c = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 1), cloudMat);
-      const s = 1.5 + rnd() * 3;
-      c.scale.set(s * 1.6, s * 0.45, s);
+      const s = 1.2 + rnd() * 2.2;
+      c.scale.set(s * 1.6, s * 0.4, s);
       c.position.set((rnd() - 0.5) * 60, -12 - rnd() * 8, (rnd() - 0.5) * 60 - 6);
       c.userData.drift = 0.2 + rnd() * 0.4;
       this.floaters.add(c);

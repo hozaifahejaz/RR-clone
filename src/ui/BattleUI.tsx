@@ -194,13 +194,18 @@ function TowerPanel({ g }: { g: Game }) {
 
 function LabPanel({ g }: { g: Game }) {
   const [tab, setTab] = useState<'enemy' | 'card'>('enemy');
+  const [open, setOpen] = useState(true);
   const b = g.b;
+  if (!open) return <button class="btn dark round labToggle" onClick={() => setOpen(true)}>🧪</button>;
   const give = (c: Card) => g.command({ t: 'lab', op: 'card', arg: JSON.stringify(c) });
   return (
     <div class="labPanel panel">
-      <div class="seg">
+      <div class="row">
+      <div class="seg grow">
         <button class={tab === 'enemy' ? 'on' : ''} onClick={() => setTab('enemy')}>Enemies</button>
         <button class={tab === 'card' ? 'on' : ''} onClick={() => setTab('card')}>Cards</button>
+      </div>
+      <button class="btn dark sm" onClick={() => setOpen(false)}>✕</button>
       </div>
       {tab === 'enemy' ? (
         <>

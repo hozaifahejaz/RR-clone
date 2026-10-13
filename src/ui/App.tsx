@@ -69,6 +69,8 @@ export function App({ world, overlay, initial }: { world: World; overlay: HTMLEl
   };
 
   useEffect(() => {
+    // console/debug hook: __pr.game() returns the active Game controller
+    (window as unknown as { __pr: unknown }).__pr = { game: () => game.current, world };
     startAttract();
     let last = performance.now();
     let raf = 0;
@@ -258,14 +260,10 @@ export function App({ world, overlay, initial }: { world: World; overlay: HTMLEl
 
   const quitRun = () => {
     const g = game.current;
-    if (!g) return;
+    if (!g || g.over) return;
     g.paused = false;
     setPaused(false);
-    if (g.replaying || g.b.cfg.mode === 'lab') {
-      g.b.over = true;
-      finishRun(g);
-      return;
-    }
+    g.over = true; // stops the controller from scheduling its own onOver
     g.b.over = true;
     finishRun(g);
   };
@@ -276,7 +274,7 @@ export function App({ world, overlay, initial }: { world: World; overlay: HTMLEl
     disposeGame();
     attract.current = false;
     const cfg: BattleConfig = { seed: r.seed, mode: r.mode === 'daily' ? 'daily' : 'endless', deck: r.deck, workshop: r.workshop, mutators: r.mutators, preset: r.preset };
-    const g = new Game(world, overlay, cfg, { replay: r.log });
+    const g = new Game(world, overlay, cfg, { replay: r.log, replayTicks: r.ticks });
     g.speed = 2;
     g.onOver = (gg) => finishRun(gg);
     game.current = g;
