@@ -1,6 +1,9 @@
 # RR-clone
 
-A web tower-defense game inspired by Raid Rush.
+An offline, single-player 3D tower defense game for the web, inspired by Raid Rush:
+draft the enemy road and your defenses one card at a time.
 
-- [Research notes](docs/RESEARCH.md): how the original game works
-- [Build plan](docs/PLAN.md): stack, architecture, roadmap
+- [Build plan](docs/PLAN.md): offline-first roadmap, stack, architecture
+- [Game design](docs/GAME_DESIGN.md): battle rules, towers, enemies, bosses, progression, modes
+- [Art direction](docs/ART_DIRECTION.md): visual style, rendering tech, VFX, UI, audio
+- [Research](docs/RESEARCH.md): breakdown of the original game
