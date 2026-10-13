@@ -21,7 +21,7 @@ export const TOWERS: TowerDef[] = [
   {
     id: 'cannon', name: 'Cannon', archetype: 'Cannon', cls: 'vanguard', targets: 'ground', delivery: 'ballistic',
     role: 'Splash', desc: 'Lobs explosive shells at ground enemies. Shells can miss fast movers.',
-    base: { dmg: 62, apm: 38, range: 3.2, aoe: 0.95 },
+    base: { dmg: 54, apm: 38, range: 3.2, aoe: 0.9 },
     perks: [
       dmgUp(25),
       p('Concussion', 'Shells knock enemies back', (s) => (s.knock = 0.25)),
@@ -74,7 +74,7 @@ export const TOWERS: TowerDef[] = [
   {
     id: 'gatling', name: 'Gatling', archetype: 'Vulcan', cls: 'swift', targets: 'both', delivery: 'hitscan',
     role: 'Rapid Fire', desc: 'Spins up to a hail of bullets. Crits often.',
-    base: { dmg: 10, apm: 330, range: 2.9, crit: 0.15, spinUp: 2.5 },
+    base: { dmg: 11, apm: 330, range: 2.9, crit: 0.15, spinUp: 2.2 },
     perks: [
       dmgUp(25),
       p('Hot Barrels', 'Spins up twice as fast', (s) => (s.spinUp *= 0.5)),

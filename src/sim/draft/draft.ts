@@ -127,6 +127,10 @@ export function makeOffer(b: Battle): Card[] {
       const f = field ?? find((x) => x.kind === 'move');
       if (f) forced.push(f);
     }
+    if (b.towers.length === 0) {
+      const dmg = cands.filter((x) => x.card.kind === 'tower' && isDamageDealer((x.card as { id: string }).id));
+      if (dmg.length) forced.push(rng.pick(dmg).card);
+    }
     if (b.pity.tower >= 3) {
       const t = cands.filter((x) => x.card.kind === 'tower');
       if (t.length) forced.push(rng.weighted(t, (x) => x.w)!.card);
