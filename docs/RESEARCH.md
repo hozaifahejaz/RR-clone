@@ -66,6 +66,38 @@ number of cards you can play", so **XP is the main pacing lever**.
   towers, skills, heroes, upgrades and paths automatically.
 - Pause screen shows revives left, boss info and kill count.
 
+### 2.4 Battle feel: more findings (round 2)
+- **Land is a card too.** The App Store copy says "Extend ROADS and LAND". Players describe in-battle offers like
+  "two roads, an extra field, move/switch". An auto-battle complaint mentions a "map expansion" placement
+  that "reveals only one tile", so the board is partly hidden and revealed with field cards. ✅/🟡
+- **Move and Switch cards** exist in battle (official 1.440 notes: Gambler Tower "place it or move it using a
+  Move or Switch Card"). ✅
+- **Many short waves.** A reviewer says the first level has **40 waves**. 🟡
+- **Stars go to 6★** in battle (Gambler "at 6★", 1.450 notes). Star upgrades change mechanics, e.g. Nexus
+  "gains additional barrels and expands its impact range", Hook count/length. ✅
+- **Enemies fight back:** Siegebreaker fires rockets at "clustered defenses", Frostlance mini-stuns "defenders",
+  EMP Droid, and Overwatch grants towers *Health*, so towers can take damage. ✅ (exact tower-death rules ❓)
+- **Blocking:** Garrison soldiers and Drone Launcher drones block enemies and force them to fight. Guides suggest
+  placing the hero near the exit to catch leakers. 🟡
+- **Push physics:** Wind Blower push strength 0.2–0.3 base. At high rarity it pushed air units *off the map*
+  and could trap units in endless loops, so it was nerfed. Enemy movement speed is **globally capped**. ✅
+- **Supporter / Amplifier** towers buff adjacent towers and don't attack. 🟡
+- **Nexus Tower:** continuous line beam that damages along a straight line ("Grid Impact"). ✅
+- **Gambler Tower** rolls a die on placement or move (1–2 worse, 3 base, 4–6 better). ✅
+- **PvP was retired** in v1.440 to refocus on PvE. ✅
+
+### 2.5 Endless Battle ✅
+Timed event (v1.430+): an "unrelenting gauntlet" of waves, **league tiers** that scale with player level,
+**Lucky Machine** spins earned the deeper you go, and a live leaderboard. As the run goes on, **towers destroy
+ground tiles**, **shielded enemies** appear, and **XP from kills decreases**, which means fewer card picks.
+
+### 2.6 What players complain about (things to fix) 🟡
+- Streaky draws: refreshes return the same towers or only roads, and no anti-air shows up on flyer-heavy levels.
+- The camera auto-jumps and zooms toward placement spots mid-wave.
+- Tower and enemy stats aren't shown.
+- Autoplay makes bad placements.
+- Mid-game difficulty spikes feel pay-to-win.
+
 ---
 
 ## 3. Loadout (pre-battle deck) ✅
@@ -261,5 +293,9 @@ can**, and "Raid Rush" is a trademark. The clone should:
     Epic Challenges (/5664), Clan War (/6541), Patch notes 1.400 (/5441), 1.410 (/5733),
     1.420 (/5858), 1.430 (/6039), 1.460 (/6537), 1.470 (/6711), 1.480 (/6864), 1.495 (/7035)
 - GameFAQs release data: https://gamefaqs.gamespot.com/android/439728-raid-rush-tower-defense-td/data
+- More patch notes: 1.440 (/6148), 1.450 (/6353), 1.441 (/6164)
+- App Store "Games We Love" editorial: https://apps.apple.com/bt/ipad/story/id1731160164
+- Player reviews: https://www.iofreeonline.com/IOS/game/Raid-Rush-Tower-Defense-TD.html ,
+  https://www.taptap.io/app/257191/review
 - Fan guide (GrindnStrat): https://grindnstrat.com/raid-rush-guide/
 - ChapterCheats hints: https://www.chaptercheats.com/cheat/android/649923/raid-rush-tower-defense-td/hint/201263

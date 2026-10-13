@@ -15,6 +15,8 @@ toy-like miniatures on a little floating battlefield.
   No photorealism.
 - **Camera:** perspective at about 55° pitch, slightly zoomed so the 9×15 board fills a portrait screen. Subtle
   **tilt-shift depth of field** at the top and bottom edges sells the miniature look. Pinch-to-zoom and pan are allowed within limits.
+- **The camera never moves on its own** during play (a common Raid Rush complaint). Auto-framing is an opt-in setting.
+- **Fog:** unrevealed board areas are soft volumetric cloud over the void, so the island visibly grows as you play.
 - **Readability first:** enemies are saturated with a class-colored rim. The ground is desaturated and low contrast.
   Road tiles have a clear border. Elites get an animated outline. Gameplay info is never hidden behind effects.
 
@@ -61,6 +63,10 @@ toy-like miniatures on a little floating battlefield.
 
 | Moment | Treatment |
 |---|---|
+| **Field reveal** | Fog cloud parts, land chunk rises out of the void with rocks crumbling off its underside, grass/props sprout |
+| **Phase change (Endless)** | Banner slam ("SIEGE"), sky and light shift a step darker and more intense, music adds a layer |
+| **Land collapse** | Cracks glow along the tile for 20s, then it crumbles into the void with debris |
+| **Lucky Machine** | 3-reel slot with chunky reels, light chase, coin burst on win |
 | **Path placement** | Tiles pop up from the ground one by one with a bounce (staggered 40ms), dust puffs, the old Gate implodes, the new Gate swirls open with a light pillar |
 | **Tower placement** | Tower drops from above with squash & stretch, ground shockwave ring, small camera kick, class-colored sparkle |
 | **Star upgrade** | Every tower of that type does a synced flash + star burst, then a model change at 3★ and 5★ (extra barrels, glowing parts) |

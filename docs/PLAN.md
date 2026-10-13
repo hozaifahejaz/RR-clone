@@ -1,13 +1,14 @@
-# Build Plan (Offline-First)
+# Build Plan: Endless First, Offline First
 
-**Goal:** a visually stunning, single-player, fully offline web game that plays like Raid Rush:
-card-drafted tower defense where you build the enemy road. Online features (cloud save,
-leaderboards, PvP, clans) come **later** and stay out of the way until then.
+**Goal:** a visually stunning, offline, single-player web game that plays and feels like Raid Rush.
+**Endless mode is the first thing we ship.** It is a complete game on its own: run → rewards → upgrades → deeper run.
+Campaign, then online features, come after.
 
-Companion docs:
-- [`GAME_DESIGN.md`](./GAME_DESIGN.md): rules, content roster, progression, modes
-- [`ART_DIRECTION.md`](./ART_DIRECTION.md): look, rendering tech, VFX "juice" catalog, UI, audio
-- [`RESEARCH.md`](./RESEARCH.md): breakdown of the original game
+| Doc | What's in it |
+|---|---|
+| [`GAME_DESIGN.md`](./GAME_DESIGN.md) | RR philosophy, card rules, **battle physics spec**, roster, **Endless design**, meta |
+| [`ART_DIRECTION.md`](./ART_DIRECTION.md) | Look, rendering tech, VFX "juice" catalog, UI, audio |
+| [`RESEARCH.md`](./RESEARCH.md) | What we know about Raid Rush, with sources |
 
 Working title: **"Path Raiders"** (placeholder).
 
@@ -15,36 +16,35 @@ Working title: **"Path Raiders"** (placeholder).
 
 ## 1. Principles
 
-1. **Offline is the product, not a fallback.** No server, no account, no network calls. Installable
-   PWA. Everything (assets, fonts, audio) is cached on first load. Save data lives on the device and can be exported.
-2. **Fun before pretty, then very pretty.** Prove the gameplay in graybox (M1), then build the full visual
-   pipeline on that one slice (M2) before producing content at scale.
-3. **Simulation ≠ rendering.** A pure, deterministic TypeScript sim (seeded RNG, fixed 30 Hz tick) with
-   no Three.js imports. The renderer only reads state. This gives us 2x/3x speed, autoplay,
-   headless balance testing and replays now, and anti-cheat online features later at no extra cost.
-4. **Data-driven content.** Towers, enemies, perks, waves, chapters and modifiers are data. New content shouldn't need new code.
-5. **Built for one player (you).** Dev tools are a first-class feature: the Lab sandbox, a debug panel, and cheat
-   commands for testing.
+1. **Endless is the product.** Every system we build (board, road, draft, physics, waves, meta) gets judged
+   by one question: does it make an Endless run better?
+2. **Feels like Raid Rush.** Same core rules: XP-only economy, road + land + tower cards, 6-tower deck, ±20% class
+   triangle, ground vs. air, 6★ in-battle stars, physical crowd control, escalating pressure. Where RR
+   frustrates players (streaky draws, hidden stats, auto-camera), we fix it.
+3. **Offline is the product, not a fallback.** No server, no account. Installable PWA, works in airplane mode,
+   saves on the device, one-tap export/import.
+4. **Fun in graybox → then stunning.** Prove the loop with boxes first (M1), then build the full visual pipeline on
+   that same slice (M2), *then* make content at scale.
+5. **Deterministic sim, separate from rendering.** Pure TS, seeded RNG, fixed 30 Hz. This gives speed-up, autoplay,
+   headless balance runs and replays now, and makes online leaderboards cheat-proof later.
+6. **Data-driven.** Towers, enemies, perks, wave templates, phases and curves are data.
 
 ---
 
 ## 2. Tech stack
 
-| Layer | Choice | Notes |
-|---|---|---|
-| Language / build | **TypeScript + Vite** | |
-| 3D rendering | **Three.js** | Stylized low-poly 3D diorama look (see Art Direction) |
-| Post-processing | **pmndrs `postprocessing`** | Bloom, SMAA, tilt-shift DoF, LUTs |
-| Particles | Custom GPU-instanced pool | Full control and performance |
-| Tweening | **GSAP** (or `@tweenjs/tween.js`) | All the juice |
-| UI | **Preact + CSS** DOM overlay | Crisp text, responsive, fast to build menus |
-| Audio | **Howler.js** | Sprites, crossfades |
-| Save | **IndexedDB** via `idb-keyval`, versioned schema + migrations | Export/import JSON file |
-| Offline | **`vite-plugin-pwa`** (Workbox precache) | Install to home screen / desktop |
-| Assets | glTF + `gltf-transform` (meshopt, KTX2) | CC0 kits → custom later |
-| Debug | `lil-gui` + `stats-gl` (dev builds only) | |
-| Tests | **Vitest** (sim), **Playwright** (smoke + screenshot) | Chromium is preinstalled here |
-| Optional later | Tauri / Capacitor wrapper | Native desktop / phone app from the same build |
+| Layer | Choice |
+|---|---|
+| Language / build | TypeScript + Vite |
+| 3D | **Three.js** (stylized low-poly diorama) + pmndrs `postprocessing` (bloom, SMAA, tilt-shift, LUT) |
+| Tweens / juice | GSAP |
+| UI | Preact + CSS overlay (crisp text, responsive) |
+| Audio | Howler.js (sprites, adaptive music layers) |
+| Save | IndexedDB (`idb-keyval`), versioned schema + migrations, JSON export/import |
+| Offline | `vite-plugin-pwa` (precache everything) |
+| Assets | glTF + `gltf-transform` (meshopt, KTX2); CC0 kits restyled with one palette |
+| Debug | `lil-gui`, `stats-gl`, cheat console (dev builds only) |
+| Tests | Vitest (sim, determinism, draft rules), Playwright (smoke + screenshots) |
 
 ---
 
@@ -52,123 +52,129 @@ Working title: **"Path Raiders"** (placeholder).
 
 ```
 src/
-  sim/                  # PURE TS — runs in browser, Node (tests) and later a server
-    core/               # rng (mulberry32), fixed-step loop, events bus, command queue
-    board/              # grid, tiles, road graph, path-piece placement ("Extending Gate")
-    battle/             # BattleState, step(), wave spawner, XP/levels, fortress, Last Stand
-    combat/             # targeting, damage formula, status effects, projectiles, spatial hash
-    draft/              # card pool, weighting/pity rules, rerolls
-    entities/           # towers, enemies, heroes, skills, traps — behavior components
-    ai/autoplay.ts      # card scoring + placement AI (balance sims, "auto" toggle)
-  data/                 # towers.ts, enemies.ts, skills.ts, heroes.ts, pathPieces.ts,
-                        # modifiers.ts, chapters/*.json, curves.ts
-  meta/                 # profile, collection, shards/levels, crates, workshop, unlocks,
-                        # save (IndexedDB) + migrations, export/import
-  render/               # Three.js: scene, camera rig, biome environments, materials/shaders,
-                        # instanced enemy renderer, tower views, VFX, post-fx, quality tiers
-  ui/                   # Preact screens: home/chapter map, deck builder, collection, workshop,
-                        # battle HUD, draft cards, results, settings
-  audio/                # music director (adaptive layers), sfx bank
-  dev/                  # debug panel, cheats, Lab mode hooks (stripped in prod)
-  main.ts
+  sim/                    # PURE TS: no DOM/Three imports. Runs in browser, Node, Web Worker.
+    core/                 # rng, fixed-step clock, command queue, event bus, ids, pools
+    board/                # grid, fog/field reveal, road polyline + arc corners, placement validation
+    movement/             # path-distance movement, air lines, lanes, separation, push/pull/knockback
+    combat/               # targeting, deliveries (hitscan/homing/ballistic/beam/chain/...), damage, status
+    entities/             # tower, enemy, hero, soldier, trap, skill behaviors (data + small components)
+    draft/                # XP curve, card pool, weights, guarantees, pity, refresh
+    waves/                # endless wave generator (budget + templates), phase table, boss rotation
+    battle.ts             # BattleState + step(); win/lose/Last Stand; run record (seed + commands)
+    ai/autoplay.ts        # card + placement scoring (balance sims, optional auto mode)
+  data/                   # towers, enemies, skills, heroes, roadPieces, fieldShapes, phases,
+                          # waveTemplates, curves, mapPresets
+  meta/                   # profile, collection, merge/jokers, levels, workshop, crates, records, save
+  render/                 # scene, camera rig, board/tile meshes, instanced enemies, tower views,
+                          # vfx (pooled), post-fx, quality tiers, interpolation
+  ui/                     # Preact: home, deck, battle HUD, draft cards, results, crate, settings
+  audio/                  # music director (phase layers), sfx bank
+  dev/                    # debug panel, cheats, sandbox hooks
 tools/
-  sim-cli.ts            # headless balance runner
-  build-assets.ts       # gltf-transform pipeline + card icon renders
-tests/
+  sim-cli.ts              # npm run sim: headless balance reports (CSV/JSON)
+  build-assets.ts         # asset optimization + card icon renders
 ```
 
-**Battle flow:** `input → Command (PlacePath/PlaceTower/PickCard/CastSkill...) → sim.step() →
-events (onHit, onKill, onLevelUp...) → render + audio + UI react`. Seed + command log = exact replay.
+**Flow:** `input → Command → sim.step() (30 Hz) → events → render (interpolated, 60+ fps) / audio / UI`.
+The sim can move to a Web Worker later if the main thread gets busy.
 
-**Online-ready seams (unused for now):** save goes through a `SaveStore` interface (IndexedDB now,
-cloud later), the economy goes through a `Ledger` service, and runs record their command log. Adding online
-later means adding implementations, not rewriting.
+**Online-ready seams (unused until later):** `SaveStore` (IndexedDB → cloud), `Ledger` (all currency changes),
+`RunRecord` (seed + commands, so a server can re-simulate for leaderboards).
 
 ---
 
 ## 4. Roadmap
 
-Every milestone ends in a playable build. Rough estimates assume one developer working with Claude.
+Every milestone ends in a playable build. **Gates** are go/no-go checks. We don't move on until they pass.
 
 ### M0: Foundation (≈ 3–4 days)
-- [ ] Vite + TS + Three.js + Preact + Vitest + ESLint/Prettier scaffold
-- [ ] Fixed-step sim loop with render interpolation, seeded RNG, command queue
-- [ ] Portrait responsive layout (phone + desktop letterboxed), touch + mouse input
-- [ ] PWA (installable, works with network off), IndexedDB save with schema version
-- [ ] Debug panel + FPS meter
+- [ ] Vite + TS + Three.js + Preact + Vitest + ESLint/Prettier
+- [ ] Fixed-step clock + render interpolation, seeded RNG, command queue, event bus
+- [ ] Portrait layout (phone + letterboxed desktop), touch + mouse, camera pan/zoom limits
+- [ ] PWA works offline. IndexedDB save with schema version.
+- [ ] Debug panel + FPS meter + cheat console skeleton
 
-### M1: Graybox vertical slice: *is it fun?* (≈ 1.5–2 weeks)
-- [ ] Board: grid, tiles, obstacles, camera rig (pan/zoom limits)
-- [ ] **Extending Gate road**: path pieces, snap to gate, rotate/mirror, ghost validity
-- [ ] Enemies follow the road (ground) and a smoothed route (air), damage the fortress
-- [ ] 4 towers (Cannon, Gatling, Tesla, Frost), targeting, projectiles, class triangle
-- [ ] 5 enemies (Scrapper, Dasher, Brute, Buzzer, Medic), waves from JSON
-- [ ] **Draft**: XP orbs, level-up, pick 1 of 3, weighting + pity rules, star-upgrade cards
-- [ ] Win/lose, Last Stand, 1x/2x speed, pause
-- [ ] Unit tests: placement validation, waypoints, damage, draft rules, determinism (same seed → same result)
-- [ ] ✅ **Gate:** play 20+ runs. Is road-building plus drafting fun? Iterate before moving on.
+### M1: Graybox Endless: *is the loop fun?* (≈ 2 weeks)
+Boxes and cylinders only, colored by class.
+- [ ] Board 13×21 with fog, starting island, obstacles, power tiles, 1 map preset
+- [ ] **Road cards** (Extending Gate, 2-shape choice, rotate/mirror, ghost validity) and **Field cards**
+- [ ] **Movement physics:** path-distance ground movement, arc corners, lanes, separation, speed cap; straight-line air
+- [ ] 6 towers: Cannon (ballistic), Skyguard (homing AA), Gatling (hitscan), Tesla (chain), Frost Gun (slow), Gust Fan (push)
+- [ ] 5 enemies: Scrapper, Dasher, Brute, Buzzer, Medic
+- [ ] Damage formula, class triangle, armor, crit, slow/stun/push
+- [ ] **Draft:** XP orbs, level-up pause, 1-of-3, guarantees + pity, Star cards (to 6★, stat-only for now), Move/Switch, 1 refresh
+- [ ] **Endless waves:** budget generator, 3 templates, phases 1–2, boss placeholder every 10, Call Early
+- [ ] Fortress HP, Last Stand, game over → results (wave reached), 1x/2x/3x, pause
+- [ ] Tests: road validation, movement/push math, damage, draft guarantees, **determinism** (seed+commands → same final state)
+- [ ] ✅ **Gate:** 20+ runs played. Runs feel different from each other, picks feel meaningful, death feels fair.
+      Tune the XP curve and wave budget until runs last ~15–25 min.
 
-### M2: Visual slice: *make one chapter look stunning* (≈ 2 weeks)
-- [ ] Floating diorama board, Meadow biome environment, sky, props
-- [ ] Toon shader + rim + outlines, shadows, post-fx stack, quality tiers
-- [ ] Real models for the 4 towers / 5 enemies (CC0 kitbash, shared palette), fortress, gate
-- [ ] VFX pass: muzzle flashes, tracers, lightning, frost, explosions, hit flash, damage numbers, dissolve deaths
-- [ ] Juice pass: tile pop-in, tower drop, gate open/collapse, star-upgrade burst, camera shake
-- [ ] Draft card UI with rarity frames, 3D tilt, slow-mo + blur
-- [ ] Battle HUD, results screen, audio (music layers + SFX)
-- [ ] ✅ **Gate:** 60 fps on a mid-range phone at Medium; a recorded clip looks like a store trailer.
+### M2: Visual slice: *make that loop stunning* (≈ 2–3 weeks)
+- [ ] Floating diorama board (Plains biome), sky, props, fog-reveal effect
+- [ ] Toon shader + rim + outlines, shadows, post-fx stack, Low/Med/High quality tiers
+- [ ] Models for the 6 towers (with ★3 and ★6 visual upgrades), 5 enemies, fortress, gate
+- [ ] VFX: muzzle flashes, tracers, lightning, frost, explosions, gust, hit flash, damage numbers, dissolve deaths, XP orbs
+- [ ] Juice: road tiles pop up, land rises out of the fog, tower drop + shockwave, gate collapse/open, star burst, camera shake
+- [ ] Draft cards: rarity frames, 3D tilt, slow-mo + blur. Battle HUD. Results screen.
+- [ ] Audio: SFX set + 2-layer music (calm/combat) + phase stingers
+- [ ] ✅ **Gate:** 60 fps Medium on a mid-range phone. A 30s capture looks like a store trailer.
 
-### M3: Content core (≈ 3 weeks)
-- [ ] All 16 towers with 5 star perks each
-- [ ] All 14 enemies + elite affixes
-- [ ] 8 skills (aim + cooldown UI), 4 heroes (placement, special charge, passive aura)
-- [ ] Bosses 1–2 with phases + intro cinematics
-- [ ] Biomes 1–2 (Meadow, Sunscorch), chapters 1–10, power tiles, water + bridge pieces
-- [ ] Autoplay AI + `npm run sim` balance reports, first balance pass
+### M3: Endless depth (≈ 3 weeks)
+- [ ] Remaining 6 MVP towers (Railgun, Barracks + blockers, Spike Strip traps, Prism Laser beam, Grapple pull) + full ★1–★6 perk tracks
+- [ ] Remaining MVP enemies (Bomber, Shellback, Splitter) + elites with affixes
+- [ ] 4 skills (aim + cooldown), 2 heroes (place, level in-run, special, aura)
+- [ ] 2 real bosses (Iron Colossus, Sky Leviathan) with phases + intro cinematics
+- [ ] **All 6 Pressure Phases**: shields, Rocketeer/EMP Integrity damage, land collapse, XP starvation
+- [ ] More wave templates, 3 map presets (Plains, Islands, Canyon), Bridge road piece
+- [ ] Autoplay AI + `npm run sim` reports. First balance pass on medians and damage share.
+- [ ] ✅ **Gate:** sim median wave ~25 with the starter deck. A skilled human beats wave 40 with the starter deck.
 
-### M4: Meta game (≈ 2 weeks)
-- [ ] Home screen (fortress diorama) + chapter map
-- [ ] Collection, card rarities (shards) and levels (gold), deck builder (6 towers + 2 skills + 1 hero)
-- [ ] Supply crates (instant open, great animation), first-clear rewards
-- [ ] Chapter stars → Workshop talent tree
-- [ ] Unlock pacing / tutorial for chapters 1–6
-- [ ] Settings: graphics quality, audio, accessibility, save export/import, reset
+### M4: Endless meta: *v1.0 offline release* (≈ 2–3 weeks)
+- [ ] Home screen with a 3D fortress diorama and a big **Play Endless** button
+- [ ] Deck builder (6 towers / 2 skills / 1 hero) with a phase enemy-class preview
+- [ ] Collection: rarity (merge 3/2 copies, jokers), levels (gold + blueprints)
+- [ ] Rewards: Supply Drops every 10 waves, **Lucky Machine**, end-of-run payout, record crates (instant open)
+- [ ] **Depth unlocks** (new towers/skills/hero at first wave 10/20/30/...), Workshop (Medals)
+- [ ] Records + run history + replay viewer (seed + commands)
+- [ ] Settings: quality, audio, accessibility, save export/import/reset. Tutorial for the first run.
+- [ ] Performance + load-size pass (< 60 MB precache), low-end device tuning
+- [ ] ✅ **v1.0:** install it, airplane mode on, and play Endless for weeks with real progression.
 
-### M5: Full offline game (≈ 3–4 weeks)
-- [ ] Biomes 3–6, chapters 11–30, bosses 3–6
-- [ ] Epic +/++/+++ modifier tiers
-- [ ] Endless, Daily Challenge (date seed), Boss Rush, **The Lab** sandbox
-- [ ] Full balance pass with sim reports, difficulty curve tuning
-- [ ] Polish: transitions, idle animations, music for all biomes, loading screen
-- [ ] Performance pass on low-end devices, asset size budget (< 60 MB total precache)
-- [ ] ✅ **v1.0 offline release**: install it, put the phone in airplane mode, play the full campaign
+### M5: Endless+ (≈ 2 weeks)
+- [ ] Daily Endless (date seed), Mutators, remaining towers (Mortar, Boomerang, Flamethrower, Bowler, Disco, Amplifier),
+      remaining enemies and bosses, heroes 3–4, skills 5–8, more map presets and biomes
+- [ ] The Lab (sandbox: any tower/level, spawn any enemy). Partly done already as dev tooling.
 
-### Later: online and extras (after v1.0)
-1. **Cloud save** (Supabase auth + a `SaveStore` implementation): sync between your devices
-2. **Leaderboards** for Daily / Endless / Speed Run: server re-simulates submitted command logs
-3. **Async PvP**: attack snapshots of other players' decks and fortresses, trick cards, trophies
-4. Clans, co-op boss events, seasonal content, Core Parts gear
-5. Native wrappers (Tauri desktop, Capacitor mobile)
+### M6: Campaign (later)
+- Authored chapters reuse the Endless sim with fixed maps + handwritten wave lists, 3-star ratings and boss chapters.
+  Mostly content work at this point.
+
+### Later: Online
+1. Cloud save (Supabase) via `SaveStore`
+2. Global Endless/Daily leaderboards with server re-simulation of `RunRecord`s
+3. Async PvP, clans, co-op boss events, Core Parts gear
 
 ---
 
 ## 5. Quality bars
 | Area | Bar |
 |---|---|
-| Performance | 60 fps Medium on mid phone; 60 fps High on laptop; no GC hitches (pool everything) |
-| Load | First load < 10s on broadband; repeat/offline load < 3s |
-| Determinism | Same seed + commands → identical outcome (CI test) |
-| Readability | You can tell enemy class, air/ground and elite status at a glance, even during big VFX |
-| Feel | Every player action gets visual + audio feedback within 1 frame |
+| Performance | 60 fps Medium on mid phone, High on laptop; 300 enemies + 1,000 particles; zero GC hitches |
+| Load | First load < 10s, repeat/offline < 3s |
+| Determinism | Same seed + commands → identical result (CI test across 50 random seeds) |
+| Readability | Class, air/ground, elite, shield all readable at a glance during heavy VFX |
+| Feel | Every action gets visual + audio feedback within 1 frame; no input ever lost during slow-mo |
+| Fairness | No death without a visible cause; no offer you can't use; anti-air guarantee before flyer waves |
 
 ## 6. Risks
 | Risk | Mitigation |
 |---|---|
-| Road model doesn't feel as good as the original | M1 gate is all about this. Rules are config-driven, so variants are cheap to try. |
-| 3D in the browser is too slow on phones | Instancing, quality tiers, render-scale; Low tier = no post-fx; profile from M2 onward |
-| Art consistency from mixed asset packs | Shared palette texture + same toon shader + outline on everything |
-| Scope (16 towers × perks × 30 chapters) | Content is data; M3 ships half the content; balance via simulator, not by hand |
-| Save loss | IndexedDB + persistent-storage request + one-tap export; versioned migrations |
+| Our road/land model doesn't feel like RR | Config-driven rules. Watch RR footage during M1 and adjust. M1 gate. |
+| Endless gets repetitive | Phases, wave templates, map presets, boss rotation, mutators, deck variety |
+| Balance across infinite waves | Exponential curves in data + sim sweeps to wave 150 |
+| 3D perf on phones | Instancing, pooling, quality tiers, render scale, Low = no post-fx |
+| Asset consistency | Shared palette texture + one toon shader + outlines on everything |
+| Save loss | IndexedDB + `navigator.storage.persist()` + export; migrations tested |
 
 ## 7. Next step
-Start **M0 → M1**: scaffold the project and get the graybox road-building + draft loop playable.
+**M0 → M1:** scaffold the project and get the graybox Endless loop (road + field + 6 towers + draft + waves) playable.
